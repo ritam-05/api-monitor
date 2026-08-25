@@ -4,6 +4,7 @@ import asyncio
 
 from api.core.database import get_db
 from api.models.endpoint import Endpoint
+from api.models.result import MonitoringResult  # <-- New import
 from api.services.monitor import check_endpoint
 
 router = APIRouter(
@@ -13,17 +14,11 @@ router = APIRouter(
 
 @router.post("/run-checks")
 async def run_monitoring_checks(db: Session = Depends(get_db)):
-    """
-    Trigger a health check for all active endpoints.
-    In production, this will be called by a Vercel Cron Job.
-    """
-    # 1. Fetch all active endpoints from the database
     active_endpoints = db.query(Endpoint).filter(Endpoint.is_active == True).all()
     
     if not active_endpoints:
         return {"message": "No active endpoints to monitor.", "results": []}
         
-    # 2. Define a helper function to wrap the check and format the output
     async def check_and_format(ep: Endpoint):
         check_result = await check_endpoint(url=ep.url, method=ep.method, timeout=ep.timeout)
         return {
@@ -33,13 +28,23 @@ async def run_monitoring_checks(db: Session = Depends(get_db)):
             **check_result
         }
 
-    # 3. Run all checks concurrently using asyncio.gather for speed
     tasks = [check_and_format(ep) for ep in active_endpoints]
     check_results = await asyncio.gather(*tasks)
     
-    # (In Phase 6, we will add the code here to save these results to the database!)
+    # <-- NEW: Save results to the database
+    for res in check_results:
+        db_result = MonitoringResult(
+            endpoint_id=res["endpoint_id"],
+            is_success=res["is_success"],
+            status_code=res["status_code"],
+            response_time_ms=res["response_time_ms"],
+            error_message=res["error_message"]
+        )
+        db.add(db_result)
+        
+    db.commit() # Save all to disk
     
     return {
-        "message": f"Successfully checked {len(active_endpoints)} endpoints.",
+        "message": f"Successfully checked {len(active_endpoints)} endpoints and saved results.",
         "results": check_results
     }

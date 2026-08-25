@@ -2,9 +2,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.core.database import engine, Base
-from api.models import endpoint 
+from api.models import endpoint, result  # <-- Update: Added result model
 from api.routes import endpoints
-from api.routes import engine as engine_router  # Corrected: Import engine.py and alias it
+from api.routes import engine as engine_router 
 
 # Create the database tables
 Base.metadata.create_all(bind=engine)
@@ -16,7 +16,6 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
-# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -25,9 +24,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the routers
 app.include_router(endpoints.router)
-app.include_router(engine_router.router)  # Corrected: Use the aliased router
+app.include_router(engine_router.router) 
 
 @app.get("/api/health")
 def health_check():

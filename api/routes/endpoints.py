@@ -4,9 +4,10 @@ from typing import List
 
 from api.core.database import get_db
 from api.models.endpoint import Endpoint
+from api.models.result import MonitoringResult
 from api.schemas.endpoint import EndpointCreate, EndpointUpdate, EndpointResponse
+from api.schemas.result import MonitoringResultResponse
 
-# Create a router specifically for our /api/endpoints path
 router = APIRouter(
     prefix="/api/endpoints",
     tags=["Endpoints"]
@@ -14,8 +15,6 @@ router = APIRouter(
 
 @router.post("/", response_model=EndpointResponse)
 def create_endpoint(endpoint: EndpointCreate, db: Session = Depends(get_db)):
-    """Add a new API endpoint to monitor."""
-    # Convert Pydantic schema to SQLAlchemy model
     db_endpoint = Endpoint(**endpoint.model_dump())
     db.add(db_endpoint)
     db.commit()
@@ -24,13 +23,11 @@ def create_endpoint(endpoint: EndpointCreate, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=List[EndpointResponse])
 def read_endpoints(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    """Get a list of all monitored API endpoints."""
     endpoints = db.query(Endpoint).offset(skip).limit(limit).all()
     return endpoints
 
 @router.get("/{endpoint_id}", response_model=EndpointResponse)
 def read_endpoint(endpoint_id: int, db: Session = Depends(get_db)):
-    """Get details for a specific API endpoint."""
     db_endpoint = db.query(Endpoint).filter(Endpoint.id == endpoint_id).first()
     if db_endpoint is None:
         raise HTTPException(status_code=404, detail="Endpoint not found")
@@ -38,12 +35,10 @@ def read_endpoint(endpoint_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{endpoint_id}", response_model=EndpointResponse)
 def update_endpoint(endpoint_id: int, endpoint: EndpointUpdate, db: Session = Depends(get_db)):
-    """Update an existing API endpoint."""
     db_endpoint = db.query(Endpoint).filter(Endpoint.id == endpoint_id).first()
     if db_endpoint is None:
         raise HTTPException(status_code=404, detail="Endpoint not found")
     
-    # Update only the fields that were provided
     update_data = endpoint.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_endpoint, key, value)
@@ -54,7 +49,6 @@ def update_endpoint(endpoint_id: int, endpoint: EndpointUpdate, db: Session = De
 
 @router.delete("/{endpoint_id}")
 def delete_endpoint(endpoint_id: int, db: Session = Depends(get_db)):
-    """Delete an API endpoint from monitoring."""
     db_endpoint = db.query(Endpoint).filter(Endpoint.id == endpoint_id).first()
     if db_endpoint is None:
         raise HTTPException(status_code=404, detail="Endpoint not found")
@@ -62,3 +56,21 @@ def delete_endpoint(endpoint_id: int, db: Session = Depends(get_db)):
     db.delete(db_endpoint)
     db.commit()
     return {"ok": True, "message": "Endpoint deleted successfully"}
+
+# <-- NEW ROUTE: Get monitoring history
+@router.get("/{endpoint_id}/results", response_model=List[MonitoringResultResponse])
+def read_endpoint_results(endpoint_id: int, limit: int = 50, db: Session = Depends(get_db)):
+    """Get the most recent monitoring results for a specific endpoint."""
+    # We verify the endpoint exists
+    db_endpoint = db.query(Endpoint).filter(Endpoint.id == endpoint_id).first()
+    if db_endpoint is None:
+        raise HTTPException(status_code=404, detail="Endpoint not found")
+        
+    # Query results, sorted by newest first, limited to the requested amount
+    results = db.query(MonitoringResult)\
+        .filter(MonitoringResult.endpoint_id == endpoint_id)\
+        .order_by(MonitoringResult.checked_at.desc())\
+        .limit(limit)\
+        .all()
+        
+    return results
