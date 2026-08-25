@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from api.core.database import engine, Base
-from api.models import endpoint  # We import this so SQLAlchemy knows about the model
+from api.models import endpoint
+from api.routes import endpoints  # Import our new routes
 
 # Create the database tables
 Base.metadata.create_all(bind=engine)
@@ -22,6 +23,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register our routers
+app.include_router(endpoints.router)
 
 @app.get("/api/health")
 def health_check():
