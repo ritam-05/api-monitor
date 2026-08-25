@@ -1,6 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from api.core.database import engine, Base
+from api.models import endpoint  # We import this so SQLAlchemy knows about the model
+
+# Create the database tables
+Base.metadata.create_all(bind=engine)
+
 app = FastAPI(
     title="API Monitor",
     description="Backend for the API Monitoring Dashboard",
@@ -11,7 +17,7 @@ app = FastAPI(
 # CORS configuration to allow our Next.js frontend to talk to this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # We will restrict this to specific domains in Phase 11
+    allow_origins=["*"], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
