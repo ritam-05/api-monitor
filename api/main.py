@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api.core.database import engine, Base
 from api.models import endpoint 
-from api.routes import endpoints  # <-- New import
+from api.routes import endpoints
+from api.routes import engine as engine_router  # Corrected: Import engine.py and alias it
 
 # Create the database tables
 Base.metadata.create_all(bind=engine)
@@ -15,7 +16,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json"
 )
 
-# CORS configuration to allow our Next.js frontend to talk to this API
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -24,12 +25,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# <-- Include the endpoints router
+# Include the routers
 app.include_router(endpoints.router)
+app.include_router(engine_router.router)  # Corrected: Use the aliased router
 
 @app.get("/api/health")
 def health_check():
-    """
-    Basic health check endpoint to verify the backend is running.
-    """
     return {"status": "ok", "message": "Backend is running!"}
