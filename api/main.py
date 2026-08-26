@@ -1,3 +1,12 @@
+import os
+from dotenv import load_dotenv
+
+# MUST BE AT THE VERY TOP: Load environment variables before importing other modules
+# Try to load .env.local first (for local Next.js parity), then fallback to .env
+# Try to load .env.local first, then fallback to .env, forcing overrides
+load_dotenv(".env.local", override=True)
+load_dotenv(".env", override=True)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

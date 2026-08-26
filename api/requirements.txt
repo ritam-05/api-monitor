@@ -5,3 +5,4 @@ sqlalchemy
 httpx
 psycopg2-binary
 PyJWT
+python-dotenv
