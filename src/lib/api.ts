@@ -39,7 +39,10 @@ export async function fetchEndpoints(): Promise<Endpoint[]> {
   const res = await fetch(`${API_BASE}/endpoints`, {
     headers: await getHeaders(),
   });
-  if (!res.ok) throw new Error('Failed to fetch endpoints');
+  if (!res.ok) {
+    const errorDetail = await res.text();
+    throw new Error(`Failed to fetch endpoints: ${res.status} - ${errorDetail}`);
+  }
   return res.json();
 }
 
@@ -47,7 +50,10 @@ export async function fetchEndpoint(id: number): Promise<Endpoint> {
   const res = await fetch(`${API_BASE}/endpoints/${id}`, {
     headers: await getHeaders(),
   });
-  if (!res.ok) throw new Error('Failed to fetch endpoint');
+  if (!res.ok) {
+    const errorDetail = await res.text();
+    throw new Error(`Failed to fetch endpoint: ${res.status} - ${errorDetail}`);
+  }
   return res.json();
 }
 
@@ -55,7 +61,10 @@ export async function fetchEndpointResults(id: number): Promise<MonitoringResult
   const res = await fetch(`${API_BASE}/endpoints/${id}/results?limit=50`, {
     headers: await getHeaders(),
   });
-  if (!res.ok) throw new Error('Failed to fetch results');
+  if (!res.ok) {
+    const errorDetail = await res.text();
+    throw new Error(`Failed to fetch results: ${res.status} - ${errorDetail}`);
+  }
   return res.json();
 }
 
@@ -65,7 +74,10 @@ export async function createEndpoint(data: Partial<Endpoint>): Promise<Endpoint>
     headers: await getHeaders(),
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to create endpoint');
+  if (!res.ok) {
+    const errorDetail = await res.text();
+    throw new Error(`Failed to create endpoint: ${res.status} - ${errorDetail}`);
+  }
   return res.json();
 }
 
@@ -74,7 +86,10 @@ export async function deleteEndpoint(id: number): Promise<void> {
     method: 'DELETE',
     headers: await getHeaders(),
   });
-  if (!res.ok) throw new Error('Failed to delete endpoint');
+  if (!res.ok) {
+    const errorDetail = await res.text();
+    throw new Error(`Failed to delete endpoint: ${res.status} - ${errorDetail}`);
+  }
 }
 
 export async function triggerChecks(): Promise<{ message: string, results: any[] }> {
@@ -82,6 +97,9 @@ export async function triggerChecks(): Promise<{ message: string, results: any[]
     method: 'POST',
     headers: await getHeaders(),
   });
-  if (!res.ok) throw new Error('Failed to run monitoring checks');
+  if (!res.ok) {
+    const errorDetail = await res.text();
+    throw new Error(`Failed to run monitoring checks: ${res.status} - ${errorDetail}`);
+  }
   return res.json();
 }
