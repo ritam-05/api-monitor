@@ -2,8 +2,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-# 1. Try to get Vercel's Postgres URL, fallback to standard DATABASE_URL, finally fallback to local SQLite
-DATABASE_URL = os.getenv("POSTGRES_URL", os.getenv("DATABASE_URL", "sqlite:///./api_monitor.db"))
+# 1. Check for our custom SUPABASE_DB_URL first, then Vercel's standard variables, finally fallback to SQLite
+DATABASE_URL = os.getenv("SUPABASE_DB_URL", os.getenv("POSTGRES_URL", os.getenv("DATABASE_URL", "sqlite:///./api_monitor.db")))
 
 # 2. SQLAlchemy > 1.4 requires the URL to start with postgresql:// instead of postgres://
 if DATABASE_URL.startswith("postgres://"):
