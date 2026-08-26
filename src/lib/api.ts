@@ -20,8 +20,9 @@ export interface MonitoringResult {
   checked_at: string;
 }
 
+// Notice we removed the trailing slash after endpoints
 export async function fetchEndpoints(): Promise<Endpoint[]> {
-  const res = await fetch(`${API_BASE}/endpoints/`);
+  const res = await fetch(`${API_BASE}/endpoints`);
   if (!res.ok) throw new Error('Failed to fetch endpoints');
   return res.json();
 }
@@ -38,8 +39,9 @@ export async function fetchEndpointResults(id: number): Promise<MonitoringResult
   return res.json();
 }
 
+// Removed trailing slash here too
 export async function createEndpoint(data: Partial<Endpoint>): Promise<Endpoint> {
-  const res = await fetch(`${API_BASE}/endpoints/`, {
+  const res = await fetch(`${API_BASE}/endpoints`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
@@ -55,7 +57,6 @@ export async function deleteEndpoint(id: number): Promise<void> {
   if (!res.ok) throw new Error('Failed to delete endpoint');
 }
 
-// <-- NEW: Trigger monitoring engine manually
 export async function triggerChecks(): Promise<{ message: string, results: any[] }> {
   const res = await fetch(`${API_BASE}/engine/run-checks`, {
     method: 'POST',

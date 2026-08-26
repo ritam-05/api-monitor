@@ -13,7 +13,8 @@ router = APIRouter(
     tags=["Endpoints"]
 )
 
-@router.post("/", response_model=EndpointResponse)
+# Notice these are now "" instead of "/"
+@router.post("", response_model=EndpointResponse)
 def create_endpoint(endpoint: EndpointCreate, db: Session = Depends(get_db)):
     db_endpoint = Endpoint(**endpoint.model_dump())
     db.add(db_endpoint)
@@ -21,7 +22,7 @@ def create_endpoint(endpoint: EndpointCreate, db: Session = Depends(get_db)):
     db.refresh(db_endpoint)
     return db_endpoint
 
-@router.get("/", response_model=List[EndpointResponse])
+@router.get("", response_model=List[EndpointResponse])
 def read_endpoints(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     endpoints = db.query(Endpoint).offset(skip).limit(limit).all()
     return endpoints
@@ -57,16 +58,12 @@ def delete_endpoint(endpoint_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"ok": True, "message": "Endpoint deleted successfully"}
 
-# <-- NEW ROUTE: Get monitoring history
 @router.get("/{endpoint_id}/results", response_model=List[MonitoringResultResponse])
 def read_endpoint_results(endpoint_id: int, limit: int = 50, db: Session = Depends(get_db)):
-    """Get the most recent monitoring results for a specific endpoint."""
-    # We verify the endpoint exists
     db_endpoint = db.query(Endpoint).filter(Endpoint.id == endpoint_id).first()
     if db_endpoint is None:
         raise HTTPException(status_code=404, detail="Endpoint not found")
         
-    # Query results, sorted by newest first, limited to the requested amount
     results = db.query(MonitoringResult)\
         .filter(MonitoringResult.endpoint_id == endpoint_id)\
         .order_by(MonitoringResult.checked_at.desc())\
