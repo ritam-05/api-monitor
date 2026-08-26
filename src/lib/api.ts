@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 export interface Endpoint {
@@ -20,30 +22,47 @@ export interface MonitoringResult {
   checked_at: string;
 }
 
-// Notice we removed the trailing slash after endpoints
+// Helper function to get auth headers
+async function getHeaders(): Promise<HeadersInit> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+  return headers;
+}
+
 export async function fetchEndpoints(): Promise<Endpoint[]> {
-  const res = await fetch(`${API_BASE}/endpoints`);
+  const res = await fetch(`${API_BASE}/endpoints`, {
+    headers: await getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch endpoints');
   return res.json();
 }
 
 export async function fetchEndpoint(id: number): Promise<Endpoint> {
-  const res = await fetch(`${API_BASE}/endpoints/${id}`);
+  const res = await fetch(`${API_BASE}/endpoints/${id}`, {
+    headers: await getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch endpoint');
   return res.json();
 }
 
 export async function fetchEndpointResults(id: number): Promise<MonitoringResult[]> {
-  const res = await fetch(`${API_BASE}/endpoints/${id}/results?limit=50`);
+  const res = await fetch(`${API_BASE}/endpoints/${id}/results?limit=50`, {
+    headers: await getHeaders(),
+  });
   if (!res.ok) throw new Error('Failed to fetch results');
   return res.json();
 }
 
-// Removed trailing slash here too
 export async function createEndpoint(data: Partial<Endpoint>): Promise<Endpoint> {
   const res = await fetch(`${API_BASE}/endpoints`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: await getHeaders(),
     body: JSON.stringify(data),
   });
   if (!res.ok) throw new Error('Failed to create endpoint');
@@ -53,6 +72,7 @@ export async function createEndpoint(data: Partial<Endpoint>): Promise<Endpoint>
 export async function deleteEndpoint(id: number): Promise<void> {
   const res = await fetch(`${API_BASE}/endpoints/${id}`, {
     method: 'DELETE',
+    headers: await getHeaders(),
   });
   if (!res.ok) throw new Error('Failed to delete endpoint');
 }
@@ -60,6 +80,7 @@ export async function deleteEndpoint(id: number): Promise<void> {
 export async function triggerChecks(): Promise<{ message: string, results: any[] }> {
   const res = await fetch(`${API_BASE}/engine/run-checks`, {
     method: 'POST',
+    headers: await getHeaders(),
   });
   if (!res.ok) throw new Error('Failed to run monitoring checks');
   return res.json();

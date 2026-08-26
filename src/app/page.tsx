@@ -2,17 +2,32 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Activity, Trash2, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
-import { fetchEndpoints, deleteEndpoint, triggerChecks, Endpoint } from '../lib/api';
-import AddEndpointModal from '../components/AddEndpointModal';
+import { fetchEndpoints, deleteEndpoint, triggerChecks, Endpoint } from '@/lib/api';
+import AddEndpointModal from '@/components/AddEndpointModal';
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
+  const router = useRouter();
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
   const [isChecking, setIsChecking] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        loadEndpoints();
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   const loadEndpoints = async () => {
     try {
@@ -24,10 +39,6 @@ export default function Home() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadEndpoints();
-  }, []);
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure you want to delete this endpoint?")) return;
@@ -45,10 +56,7 @@ export default function Home() {
     try {
       const response = await triggerChecks();
       setToastMessage(response.message);
-      
-      setTimeout(() => {
-        setToastMessage(null);
-      }, 3000);
+      setTimeout(() => { setToastMessage(null); }, 3000);
     } catch (error) {
       alert("Failed to run checks. Is the backend running?");
     } finally {

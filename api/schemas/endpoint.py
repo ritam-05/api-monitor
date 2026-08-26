@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
-# Shared properties
 class EndpointBase(BaseModel):
     name: str
     url: str
@@ -9,21 +9,19 @@ class EndpointBase(BaseModel):
     timeout: int = 5
     is_active: bool = True
 
-# Properties to receive on endpoint creation
 class EndpointCreate(EndpointBase):
     pass
 
-# Properties to receive on endpoint update
 class EndpointUpdate(BaseModel):
-    name: str | None = None
-    url: str | None = None
-    method: str | None = None
-    timeout: int | None = None
-    is_active: bool | None = None
+    name: Optional[str] = None
+    url: Optional[str] = None
+    method: Optional[str] = None
+    timeout: Optional[int] = None
+    is_active: Optional[bool] = None
 
-# Properties to return to the client
 class EndpointResponse(EndpointBase):
     id: int
+    user_id: str # <--- NEW
     created_at: datetime
 
     class Config:

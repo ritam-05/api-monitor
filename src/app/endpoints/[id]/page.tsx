@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { ArrowLeft, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { fetchEndpoint, fetchEndpointResults, Endpoint, MonitoringResult } from '../../../lib/api';
+import { fetchEndpoint, fetchEndpointResults, Endpoint, MonitoringResult } from '@/lib/api';
 
 export default function EndpointDetails() {
   const params = useParams();
@@ -114,50 +114,6 @@ export default function EndpointDetails() {
         ) : (
           <div className="text-center py-12 text-gray-500">No monitoring data available yet. Run checks to see the chart.</div>
         )}
-      </div>
-
-      <div className="bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h3 className="text-lg font-medium text-gray-900">Recent Checks</h3>
-        </div>
-        <div className="overflow-x-auto max-h-96 overflow-y-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Timestamp</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status Code</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Response Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Result</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {results.map((res) => (
-                <tr key={res.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {format(new Date(res.checked_at), 'MMM d, HH:mm:ss')}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {res.status_code || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {res.response_time_ms} ms
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {res.is_success ? (
-                      <span className="text-emerald-600 text-sm font-medium flex items-center gap-1">
-                        <CheckCircle2 className="w-4 h-4" /> Success
-                      </span>
-                    ) : (
-                      <span className="text-rose-600 text-sm font-medium flex items-center gap-1">
-                        <XCircle className="w-4 h-4" /> Failed {res.error_message && `(${res.error_message})`}
-                      </span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );
