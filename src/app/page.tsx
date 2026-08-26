@@ -2,14 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Activity, Trash2, CheckCircle2, XCircle } from 'lucide-react';
-import { fetchEndpoints, deleteEndpoint, Endpoint } from '@/lib/api';
+import { Activity, Trash2, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
+import { fetchEndpoints, deleteEndpoint, triggerChecks, Endpoint } from '@/lib/api';
 import AddEndpointModal from '@/components/AddEndpointModal';
 
 export default function Home() {
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  
+  // New state for polishing
+  const [isChecking, setIsChecking] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const loadEndpoints = async () => {
     try {
@@ -36,20 +40,58 @@ export default function Home() {
     }
   };
 
+  const handleRunChecks = async () => {
+    setIsChecking(true);
+    setToastMessage(null);
+    try {
+      const response = await triggerChecks();
+      setToastMessage(response.message);
+      
+      // Auto-hide the message after 3 seconds
+      setTimeout(() => {
+        setToastMessage(null);
+      }, 3000);
+    } catch (error) {
+      alert("Failed to run checks. Is the backend running?");
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
   const activeCount = endpoints.filter(ep => ep.is_active).length;
   const inactiveCount = endpoints.length - activeCount;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -mt-2 bg-gray-900 text-white px-4 py-2 rounded-md shadow-lg text-sm font-medium z-50 animate-fade-in-down">
+          {toastMessage}
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
-        >
-          <Activity className="h-4 w-4" />
-          Add Endpoint
-        </button>
+        
+        <div className="flex gap-3">
+          {/* New Run Checks Button */}
+          <button 
+            onClick={handleRunChecks}
+            disabled={isChecking || endpoints.length === 0}
+            className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-colors font-medium flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <RefreshCw className={`h-4 w-4 ${isChecking ? 'animate-spin text-indigo-600' : ''}`} />
+            {isChecking ? 'Checking...' : 'Run Checks'}
+          </button>
+
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors font-medium flex items-center gap-2"
+          >
+            <Activity className="h-4 w-4" />
+            Add Endpoint
+          </button>
+        </div>
       </div>
 
       {/* Stats Row */}
@@ -91,7 +133,6 @@ export default function Home() {
                 {endpoints.map((ep) => (
                   <tr key={ep.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      {/* Added Link wrapper here to make it clickable */}
                       <Link href={`/endpoints/${ep.id}`} className="block hover:opacity-80">
                         <div className="text-sm font-medium text-indigo-600">{ep.name}</div>
                         <div className="text-sm text-gray-500">{ep.method} • {ep.url}</div>
