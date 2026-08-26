@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { createEndpoint } from '@/lib/api';
+import { createEndpoint } from '../lib/api';
 
 interface AddEndpointModalProps {
   isOpen: boolean;
@@ -24,8 +24,8 @@ export default function AddEndpointModal({ isOpen, onClose, onSuccess }: AddEndp
       await createEndpoint({ name, url, method, timeout: 5, is_active: true });
       setName('');
       setUrl('');
-      onSuccess(); // Refresh the list
-      onClose(); // Close the modal
+      onSuccess(); 
+      onClose(); 
     } catch (error) {
       console.error(error);
       alert("Failed to create endpoint");

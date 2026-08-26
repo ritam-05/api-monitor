@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { ArrowLeft, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { fetchEndpoint, fetchEndpointResults, Endpoint, MonitoringResult } from '@/lib/api';
+import { fetchEndpoint, fetchEndpointResults, Endpoint, MonitoringResult } from '../../../lib/api';
 
 export default function EndpointDetails() {
   const params = useParams();
@@ -37,7 +37,6 @@ export default function EndpointDetails() {
   if (loading) return <div className="text-center py-12 text-gray-500">Loading details...</div>;
   if (!endpoint) return <div className="text-center py-12 text-gray-500">Endpoint not found.</div>;
 
-  // Analytics Calculations
   const totalChecks = results.length;
   const successfulChecks = results.filter(r => r.is_success).length;
   const uptime = totalChecks > 0 ? ((successfulChecks / totalChecks) * 100).toFixed(2) : '0.00';
@@ -46,7 +45,6 @@ export default function EndpointDetails() {
     ? Math.round(results.reduce((acc, curr) => acc + curr.response_time_ms, 0) / totalChecks)
     : 0;
 
-  // Chart Data: Backend sends newest first. We need oldest first for the chart reading left-to-right.
   const chartData = [...results].reverse().map(r => ({
     time: format(new Date(r.checked_at), 'HH:mm:ss'),
     ms: r.response_time_ms,
@@ -55,7 +53,6 @@ export default function EndpointDetails() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <Link href="/" className="inline-flex items-center text-sm text-indigo-600 hover:text-indigo-800 mb-4">
           <ArrowLeft className="w-4 h-4 mr-1" /> Back to Dashboard
@@ -74,7 +71,6 @@ export default function EndpointDetails() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="bg-white overflow-hidden shadow-sm border border-gray-100 rounded-xl p-5">
           <dt className="text-sm font-medium text-gray-500">Uptime (Last 50 checks)</dt>
@@ -92,7 +88,6 @@ export default function EndpointDetails() {
         </div>
       </div>
 
-      {/* Chart Section */}
       <div className="bg-white shadow-sm border border-gray-100 rounded-xl p-6">
         <h3 className="text-lg font-medium text-gray-900 mb-6">Response Time History</h3>
         {chartData.length > 0 ? (
@@ -121,7 +116,6 @@ export default function EndpointDetails() {
         )}
       </div>
 
-      {/* Recent Logs Table */}
       <div className="bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100">
           <h3 className="text-lg font-medium text-gray-900">Recent Checks</h3>

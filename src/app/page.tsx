@@ -3,15 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Activity, Trash2, CheckCircle2, XCircle, RefreshCw } from 'lucide-react';
-import { fetchEndpoints, deleteEndpoint, triggerChecks, Endpoint } from '@/lib/api';
-import AddEndpointModal from '@/components/AddEndpointModal';
+import { fetchEndpoints, deleteEndpoint, triggerChecks, Endpoint } from '../lib/api';
+import AddEndpointModal from '../components/AddEndpointModal';
 
 export default function Home() {
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   
-  // New state for polishing
   const [isChecking, setIsChecking] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -47,7 +46,6 @@ export default function Home() {
       const response = await triggerChecks();
       setToastMessage(response.message);
       
-      // Auto-hide the message after 3 seconds
       setTimeout(() => {
         setToastMessage(null);
       }, 3000);
@@ -63,7 +61,6 @@ export default function Home() {
 
   return (
     <div className="space-y-6 relative">
-      {/* Toast Notification */}
       {toastMessage && (
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -mt-2 bg-gray-900 text-white px-4 py-2 rounded-md shadow-lg text-sm font-medium z-50 animate-fade-in-down">
           {toastMessage}
@@ -74,7 +71,6 @@ export default function Home() {
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
         
         <div className="flex gap-3">
-          {/* New Run Checks Button */}
           <button 
             onClick={handleRunChecks}
             disabled={isChecking || endpoints.length === 0}
@@ -94,7 +90,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats Row */}
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
         <div className="bg-white overflow-hidden shadow-sm border border-gray-100 rounded-xl p-5">
           <dt className="text-sm font-medium text-gray-500 truncate">Total Endpoints</dt>
@@ -110,7 +105,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Endpoints List */}
       <div className="bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden">
         <div className="px-6 py-5 border-b border-gray-100">
           <h3 className="text-lg font-medium leading-6 text-gray-900">Monitored APIs</h3>
