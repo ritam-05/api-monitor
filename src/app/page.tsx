@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { Activity, Trash2, CheckCircle2, XCircle } from 'lucide-react';
 import { fetchEndpoints, deleteEndpoint, Endpoint } from '@/lib/api';
 import AddEndpointModal from '@/components/AddEndpointModal';
@@ -29,7 +30,7 @@ export default function Home() {
     if (!confirm("Are you sure you want to delete this endpoint?")) return;
     try {
       await deleteEndpoint(id);
-      loadEndpoints(); // Refresh list
+      loadEndpoints(); 
     } catch (error) {
       alert("Failed to delete endpoint");
     }
@@ -90,8 +91,11 @@ export default function Home() {
                 {endpoints.map((ep) => (
                   <tr key={ep.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{ep.name}</div>
-                      <div className="text-sm text-gray-500">{ep.method} • {ep.url}</div>
+                      {/* Added Link wrapper here to make it clickable */}
+                      <Link href={`/endpoints/${ep.id}`} className="block hover:opacity-80">
+                        <div className="text-sm font-medium text-indigo-600">{ep.name}</div>
+                        <div className="text-sm text-gray-500">{ep.method} • {ep.url}</div>
+                      </Link>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
