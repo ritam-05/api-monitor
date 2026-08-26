@@ -10,5 +10,11 @@
       "src": "/api/(.*)",
       "dest": "/api/main.py"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/engine/run-checks",
+      "schedule": "*/5 * * * *"
+    }
   ]
 }

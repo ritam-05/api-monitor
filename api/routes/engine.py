@@ -4,7 +4,7 @@ import asyncio
 
 from api.core.database import get_db
 from api.models.endpoint import Endpoint
-from api.models.result import MonitoringResult  # <-- New import
+from api.models.result import MonitoringResult
 from api.services.monitor import check_endpoint
 
 router = APIRouter(
@@ -12,6 +12,8 @@ router = APIRouter(
     tags=["Monitoring Engine"]
 )
 
+# Vercel Cron sends GET requests, our UI sends POST. We support both!
+@router.get("/run-checks")
 @router.post("/run-checks")
 async def run_monitoring_checks(db: Session = Depends(get_db)):
     active_endpoints = db.query(Endpoint).filter(Endpoint.is_active == True).all()
@@ -31,7 +33,6 @@ async def run_monitoring_checks(db: Session = Depends(get_db)):
     tasks = [check_and_format(ep) for ep in active_endpoints]
     check_results = await asyncio.gather(*tasks)
     
-    # <-- NEW: Save results to the database
     for res in check_results:
         db_result = MonitoringResult(
             endpoint_id=res["endpoint_id"],
@@ -42,7 +43,7 @@ async def run_monitoring_checks(db: Session = Depends(get_db)):
         )
         db.add(db_result)
         
-    db.commit() # Save all to disk
+    db.commit() 
     
     return {
         "message": f"Successfully checked {len(active_endpoints)} endpoints and saved results.",
